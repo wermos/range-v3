@@ -76,12 +76,6 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup container environment
-      if: matrix.config.container
-      run: |
-        apt-get update
-        apt-get -y install sudo python git g++ cmake curl
-
     - name: Download Ninja and CMake
       id: cmake_and_ninja
       shell: cmake -P {0}
