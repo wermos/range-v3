@@ -101,23 +101,13 @@ jobs:
 
         message(STATUS "Using host CMake version: ${CMAKE_VERSION}")
 
-        if ("${{ runner.os }}" STREQUAL "Windows")
-          set(ninja_suffix "win.zip")
-          set(cmake_suffix "win64-x64.zip")
-          set(cmake_dir "cmake-${cmake_version}-win64-x64/bin")
-        # elseif ("${{ runner.os }}" STREQUAL "Linux")
-        #   set(ninja_suffix "linux.zip")
-        #   set(cmake_suffix "Linux-x86_64.tar.gz")
-        #   set(cmake_dir "cmake-${cmake_version}-Linux-x86_64/bin")
-        # elseif ("${{ runner.os }}" STREQUAL "macOS")
-        #   set(ninja_suffix "mac.zip")
-        #   set(cmake_suffix "Darwin-x86_64.tar.gz")
-        #   set(cmake_dir "cmake-${cmake_version}-Darwin-x86_64/CMake.app/Contents/bin")
-        endif()
+        set(ninja_suffix "linux.zip")
+        set(cmake_suffix "Linux-x86_64.tar.gz")
+        set(cmake_dir "cmake-${cmake_version}-Linux-x86_64/bin")
 
-        # set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
-        # file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
-        # execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
+        set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
+        file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
+        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
 
         set(cmake_url "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-${cmake_suffix}")
         file(DOWNLOAD "${cmake_url}" ./cmake.zip SHOW_PROGRESS)
@@ -159,24 +149,7 @@ jobs:
         set(ENV{CC} ${{ matrix.config.cc }})
         set(ENV{CXX} ${{ matrix.config.cxx }})
 
-        if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
-          execute_process(
-            COMMAND "${{ matrix.config.environment_script }}" && set
-            OUTPUT_FILE environment_script_output.txt
-          )
-          set(cxx_flags "/nologo /permissive- /EHsc")
-          file(STRINGS environment_script_output.txt output_lines)
-          foreach(line IN LISTS output_lines)
-            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
-              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
-            endif()
-          endforeach()
-        endif()
-
         set(path_separator ":")
-        if ("${{ runner.os }}" STREQUAL "Windows")
-          set(path_separator ";")
-        endif()
         set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
 
         if ("x${{ matrix.config.libcxx }}" STREQUAL "xtrue")
@@ -191,20 +164,12 @@ jobs:
 
         if ("x${{ matrix.config.cxx_asan }}" STREQUAL "xtrue")
           set(cxx_flags "${cxx_flags} -fsanitize=address")
-          if ("${{ runner.os }}" STREQUAL "Windows")
-            set(link_flags "${link_flags} /INFERASANLIBS /INCREMENTAL:NO")
-          else()
-            set(cxx_flags "${cxx_flags} -fno-omit-frame-pointer")
-          endif()
+          set(cxx_flags "${cxx_flags} -fno-omit-frame-pointer")
         endif()
 
         set(cxx_concepts ON)
         if ("x${{ matrix.config.cxx_concepts }}" STREQUAL "xfalse")
           set(cxx_concepts OFF)
-        endif()
-
-        if ("${{ runner.os }}" STREQUAL "Windows")
-          set(link_flags "${link_flags} /NOLOGO")
         endif()
 
         execute_process(
@@ -225,7 +190,7 @@ jobs:
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
-          message(FATAL_ERROR "Bad exit status")
+          message(FATAL_ERROR "Bad exit status: ${result}")
         endif()
 
     - name: Build
@@ -234,19 +199,7 @@ jobs:
       run: |
         set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
 
-        if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
-          file(STRINGS environment_script_output.txt output_lines)
-          foreach(line IN LISTS output_lines)
-            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
-              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
-            endif()
-          endforeach()
-        endif()
-
         set(path_separator ":")
-        if ("${{ runner.os }}" STREQUAL "Windows")
-          set(path_separator ";")
-        endif()
         set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
 
         execute_process(
@@ -254,7 +207,7 @@ jobs:
           RESULT_VARIABLE result
         )
         if (NOT result EQUAL 0)
-          message(FATAL_ERROR "Bad exit status")
+          message(FATAL_ERROR "Bad exit status: ${result}")
         endif()
 
     - name: Run tests
@@ -265,15 +218,6 @@ jobs:
         ProcessorCount(N)
 
         set(ENV{CTEST_OUTPUT_ON_FAILURE} "ON")
-
-        if ("${{ runner.os }}" STREQUAL "Windows" AND NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
-          file(STRINGS environment_script_output.txt output_lines)
-          foreach(line IN LISTS output_lines)
-            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
-              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
-            endif()
-          endforeach()
-        endif()
 
         execute_process(
           COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/ctest --verbose -j ${N}
