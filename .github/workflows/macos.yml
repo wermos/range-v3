@@ -1,4 +1,4 @@
-name: range-v3 CI
+name: MacOS CI
 
 # Trigger on pushes to all branches and for all pull-requests
 on: [push, pull_request]
