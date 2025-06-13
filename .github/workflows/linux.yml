@@ -96,17 +96,11 @@ jobs:
       shell: cmake -P {0}
       run: |
         set(cmake_version $ENV{CMAKE_VERSION})
-        set(ninja_version $ENV{NINJA_VERSION})
 
         message(STATUS "Using host CMake version: ${CMAKE_VERSION}")
 
-        set(ninja_suffix "linux.zip")
         set(cmake_suffix "Linux-x86_64.tar.gz")
         set(cmake_dir "cmake-${cmake_version}-Linux-x86_64/bin")
-
-        # set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
-        # file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
-        # execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
 
         set(cmake_url "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-${cmake_suffix}")
         file(DOWNLOAD "${cmake_url}" ./cmake.zip SHOW_PROGRESS)
@@ -116,10 +110,7 @@ jobs:
         file(TO_CMAKE_PATH "$ENV{GITHUB_WORKSPACE}/${cmake_dir}" cmake_dir)
         message("::set-output name=cmake_dir::${cmake_dir}")
 
-        execute_process(
-          # COMMAND chmod +x ninja
-          COMMAND chmod +x ${cmake_dir}/cmake
-        )
+        execute_process(COMMAND chmod +x ${cmake_dir}/cmake)
 
     - name: Install GCC or Clang
       id: install_gcc_clang
@@ -190,8 +181,6 @@ jobs:
       shell: cmake -P {0}
       continue-on-error: ${{ matrix.config.experimental || false }}
       run: |
-        set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
-
         set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}:$ENV{PATH}")
 
         # GitHub hosted Linux runners have 4 cores
