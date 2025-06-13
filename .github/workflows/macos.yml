@@ -118,17 +118,17 @@ jobs:
       shell: cmake -P {0}
       run: |
         set(cmake_version $ENV{CMAKE_VERSION})
-        set(ninja_version $ENV{NINJA_VERSION})
+        # set(ninja_version $ENV{NINJA_VERSION})
 
         message(STATUS "Using host CMake version: ${CMAKE_VERSION}")
 
-        set(ninja_suffix "mac.zip")
+        # set(ninja_suffix "mac.zip")
         set(cmake_suffix "Darwin-x86_64.tar.gz")
         set(cmake_dir "cmake-${cmake_version}-Darwin-x86_64/CMake.app/Contents/bin")
 
-        set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
-        file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
+        # set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
+        # file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
+        # execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
 
         set(cmake_url "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-${cmake_suffix}")
         file(DOWNLOAD "${cmake_url}" ./cmake.zip SHOW_PROGRESS)
@@ -139,7 +139,7 @@ jobs:
         message("::set-output name=cmake_dir::${cmake_dir}")
 
         execute_process(
-          COMMAND chmod +x ninja
+          # COMMAND chmod +x ninja
           COMMAND chmod +x ${cmake_dir}/cmake
         )
 
@@ -149,8 +149,7 @@ jobs:
         set(ENV{CC} ${{ matrix.config.cc }})
         set(ENV{CXX} ${{ matrix.config.cxx }})
 
-        set(path_separator ":")
-        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
+        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}:$ENV{PATH}")
 
         if ("x${{ matrix.config.libcxx }}" STREQUAL "xtrue")
           set(cxx_flags "${cxx_flags} -stdlib=libc++ -nostdinc++ -cxx-isystem $ENV{GITHUB_WORKSPACE}/llvm/include/c++/v1/ -Wno-unused-command-line-argument")
@@ -176,9 +175,7 @@ jobs:
           COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/cmake
             -S .
             -B build
-            # -G Ninja
             -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }}
-            # -D CMAKE_MAKE_PROGRAM:STRING=ninja
             -D CMAKE_CXX_STANDARD:STRING=${{ matrix.config.cxx_standard }}
             -D "CMAKE_CXX_FLAGS:STRING=${cxx_flags}"
             -D "CMAKE_EXE_LINKER_FLAGS:STRING=${link_flags}"
@@ -189,6 +186,7 @@ jobs:
             ${extra_cmake_args}
           RESULT_VARIABLE result
         )
+
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status: ${result}")
         endif()
@@ -199,15 +197,15 @@ jobs:
       run: |
         set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
 
-        set(path_separator ":")
-        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}${path_separator}$ENV{PATH}")
+        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}:$ENV{PATH}")
 
         execute_process(
           COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/cmake --build build
           RESULT_VARIABLE result
         )
+
         if (NOT result EQUAL 0)
-          message(FATAL_ERROR "Bad exit status")
+          message(FATAL_ERROR "Bad exit status: ${result}")
         endif()
 
     - name: Run tests
