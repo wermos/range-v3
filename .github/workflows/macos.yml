@@ -182,8 +182,6 @@ jobs:
             -D CMAKE_VERBOSE_MAKEFILE:BOOL=ON
             -D RANGE_V3_HEADER_CHECKS:BOOL=ON
             -D RANGES_PREFER_REAL_CONCEPTS:BOOL=${cxx_concepts}
-            ${{ matrix.config.cmake_args }}
-            ${extra_cmake_args}
           RESULT_VARIABLE result
         )
 
@@ -199,8 +197,15 @@ jobs:
 
         set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}:$ENV{PATH}")
 
+        # GitHub hosted MacOS 13 runners have 4 cores, everything else has 3.
+        set(proc_count 3)
+
+        if ("${{ matrix.config.os }}" STREQUAL "macos-13")
+          set(proc_count 4)
+        endif()
+
         execute_process(
-          COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/cmake --build build
+          COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/cmake --build build --parallel ${proc_count}
           RESULT_VARIABLE result
         )
 

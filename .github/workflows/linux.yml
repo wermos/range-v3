@@ -5,7 +5,6 @@ on: [push, pull_request]
 
 env:
   CMAKE_VERSION: 3.16.2
-  NINJA_VERSION: 1.12.1
 
 jobs:
   build:
@@ -105,9 +104,9 @@ jobs:
         set(cmake_suffix "Linux-x86_64.tar.gz")
         set(cmake_dir "cmake-${cmake_version}-Linux-x86_64/bin")
 
-        set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
-        file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
-        execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
+        # set(ninja_url "https://github.com/ninja-build/ninja/releases/download/v${ninja_version}/ninja-${ninja_suffix}")
+        # file(DOWNLOAD "${ninja_url}" ./ninja.zip SHOW_PROGRESS)
+        # execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ./ninja.zip)
 
         set(cmake_url "https://github.com/Kitware/CMake/releases/download/v${cmake_version}/cmake-${cmake_version}-${cmake_suffix}")
         file(DOWNLOAD "${cmake_url}" ./cmake.zip SHOW_PROGRESS)
@@ -118,7 +117,7 @@ jobs:
         message("::set-output name=cmake_dir::${cmake_dir}")
 
         execute_process(
-          COMMAND chmod +x ninja
+          # COMMAND chmod +x ninja
           COMMAND chmod +x ${cmake_dir}/cmake
         )
 
@@ -173,17 +172,13 @@ jobs:
           COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/cmake
             -S .
             -B build
-            # -G Ninja
             -D CMAKE_BUILD_TYPE=${{ matrix.config.build_type }}
-            # -D CMAKE_MAKE_PROGRAM:STRING=ninja
             -D CMAKE_CXX_STANDARD:STRING=${{ matrix.config.cxx_standard }}
             -D "CMAKE_CXX_FLAGS:STRING=${cxx_flags}"
             -D "CMAKE_EXE_LINKER_FLAGS:STRING=${link_flags}"
             -D CMAKE_VERBOSE_MAKEFILE:BOOL=ON
             -D RANGE_V3_HEADER_CHECKS:BOOL=ON
             -D RANGES_PREFER_REAL_CONCEPTS:BOOL=${cxx_concepts}
-            ${{ matrix.config.cmake_args }}
-            ${extra_cmake_args}
           RESULT_VARIABLE result
         )
 
@@ -199,8 +194,9 @@ jobs:
 
         set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}:$ENV{PATH}")
 
+        # GitHub hosted Linux runners have 4 cores
         execute_process(
-          COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/cmake --build build
+          COMMAND ${{ steps.cmake_and_ninja.outputs.cmake_dir }}/cmake --build build --parallel 4
           RESULT_VARIABLE result
         )
 
