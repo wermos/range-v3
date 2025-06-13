@@ -76,7 +76,7 @@ jobs:
           endforeach()
         endif()
 
-        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE};$ENV{PATH}")
+        # set(ENV{PATH} "$ENV{GITHUB_WORKSPACE};$ENV{PATH}")
 
         if ("x${{ matrix.config.cxx_asan }}" STREQUAL "xtrue")
           set(cxx_flags "${cxx_flags} -fsanitize=address")
@@ -124,7 +124,7 @@ jobs:
           endforeach()
         endif()
 
-        set(ENV{PATH} "$ENV{GITHUB_WORKSPACE};$ENV{PATH}")
+        # set(ENV{PATH} "$ENV{GITHUB_WORKSPACE};$ENV{PATH}")
 
         include(ProcessorCount)
         ProcessorCount(proc_count)
