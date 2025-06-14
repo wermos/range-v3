@@ -120,8 +120,6 @@ jobs:
         set(ENV{CC} ${{ matrix.config.cc }})
         set(ENV{CXX} ${{ matrix.config.cxx }})
 
-        # set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}:$ENV{PATH}")
-
         if ("x${{ matrix.config.libcxx }}" STREQUAL "xtrue")
           set(cxx_flags "${cxx_flags} -stdlib=libc++ -nostdinc++ -cxx-isystem $ENV{GITHUB_WORKSPACE}/llvm/include/c++/v1/ -Wno-unused-command-line-argument")
           set(link_flags "${link_flags} -L $ENV{GITHUB_WORKSPACE}/llvm/lib -Wl,-rpath,$ENV{GITHUB_WORKSPACE}/llvm/lib -lc++abi")
@@ -162,10 +160,7 @@ jobs:
 
     - name: Build
       shell: cmake -P {0}
-      continue-on-error: ${{ matrix.config.experimental || false }}
       run: |
-        # set(ENV{PATH} "$ENV{GITHUB_WORKSPACE}:$ENV{PATH}")
-
         include(ProcessorCount)
         ProcessorCount(proc_count)
 
@@ -180,18 +175,11 @@ jobs:
 
     - name: Run tests
       shell: cmake -P {0}
-      continue-on-error: ${{ matrix.config.experimental || false }}
       run: |
         include(ProcessorCount)
         ProcessorCount(N)
 
-        set(ENV{CTEST_OUTPUT_ON_FAILURE} "ON")
-
         execute_process(
-          COMMAND ctest --verbose -j ${N}
+          COMMAND ctest --verbose --output-on-failure -j ${N}
           WORKING_DIRECTORY build
-          RESULT_VARIABLE result
         )
-        if (NOT result EQUAL 0)
-          message(FATAL_ERROR "Running tests failed!")
-        endif()
