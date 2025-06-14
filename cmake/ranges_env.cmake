@@ -65,12 +65,6 @@ else()
   message(WARNING "[range-v3 warning]: unknown system ${CMAKE_SYSTEM_NAME} !")
 endif()
 
-if(RANGES_CXX_STD MATCHES "^[0-9]+$")
-  if(RANGES_CXX_STD LESS 17)
-    set(RANGES_CXX_STD 17)
-  endif()
-endif()
-
 # Build type
 set(RANGES_DEBUG_BUILD FALSE)
 set(RANGES_RELEASE_BUILD FALSE)

@@ -19,20 +19,12 @@ macro(ranges_append_flag testname flag)
   endif()
 endmacro()
 
-if(CMAKE_CXX_STANDARD)
-  if(RANGES_CXX_STD)
-    if(NOT "x${RANGES_CXX_STD}" STREQUAL "x${CMAKE_CXX_STANDARD}")
-      message(FATAL_ERROR "[range-v3]: Cannot specify both CMAKE_CXX_STANDARD and RANGES_CXX_STD, or they must match. `RANGES_CXX_STD = ${RANGES_CXX_STD}, `CMAKE_CXX_STANDARD` = ${CMAKE_CXX_STANDARD}")
-    endif()
-  endif()
-endif()
-
 # All compilation flags
 # Language flag: version of the C++ standard to use
-message(STATUS "[range-v3]: C++ std=${RANGES_CXX_STD}")
+message(STATUS "[range-v3]: C++ std=${CMAKE_CXX_STANDARD}")
 if (RANGES_CXX_COMPILER_CLANGCL OR RANGES_CXX_COMPILER_MSVC)
-  ranges_append_flag(RANGES_HAS_CXXSTDCOLON "/std:c++${RANGES_CXX_STD}")
-  set(RANGES_STD_FLAG "/std:c++${RANGES_CXX_STD}")
+  ranges_append_flag(RANGES_HAS_CXXSTDCOLON "/std:c++${CMAKE_CXX_STANDARD}")
+  set(RANGES_STD_FLAG "/std:c++${CMAKE_CXX_STANDARD}")
   if (RANGES_CXX_COMPILER_CLANGCL)
     # The MSVC STL before VS 2019v16.6 with Clang 10 requires -fms-compatibility in C++17 mode, and
     # doesn't support C++20 mode at all. Let's drop this flag until AppVeyor updates to VS2016v16.6.
@@ -43,8 +35,8 @@ if (RANGES_CXX_COMPILER_CLANGCL OR RANGES_CXX_COMPILER_MSVC)
   ranges_append_flag(RANGES_HAS_W3 /W3)
   ranges_append_flag(RANGES_HAS_WX /WX)
 else()
-  ranges_append_flag(RANGES_HAS_CXXSTD "-std=c++${RANGES_CXX_STD}")
-  set(RANGES_STD_FLAG "-std=c++${RANGES_CXX_STD}")
+  ranges_append_flag(RANGES_HAS_CXXSTD "-std=c++${CMAKE_CXX_STANDARD}")
+  set(RANGES_STD_FLAG "-std=c++${CMAKE_CXX_STANDARD}")
   # Enable "normal" warnings and make them errors:
   ranges_append_flag(RANGES_HAS_WALL -Wall)
   ranges_append_flag(RANGES_HAS_WEXTRA -Wextra)
@@ -52,6 +44,9 @@ else()
     ranges_append_flag(RANGES_HAS_WERROR -Werror)
   endif()
 endif()
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# Enforce -std=c++XX, don't allow -std=gnu++XX
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if (RANGES_ENV_LINUX AND RANGES_CXX_COMPILER_CLANG)
   # On linux libc++ re-exports the system math headers. The ones from libstdc++
