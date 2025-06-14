@@ -20,12 +20,11 @@ macro(ranges_append_flag testname flag)
 endmacro()
 
 if(CMAKE_CXX_STANDARD)
-  # Normalize RANGES_CXX_STD
-  if(NOT "x${RANGES_CXX_STD}" STREQUAL "x${CMAKE_CXX_STANDARD}")
-    message(FATAL_ERROR "[range-v3]: Cannot specify both CMAKE_CXX_STANDARD and RANGES_CXX_STD, or they must match.")
+  if(RANGES_CXX_STD)
+    if(NOT "x${RANGES_CXX_STD}" STREQUAL "x${CMAKE_CXX_STANDARD}")
+      message(FATAL_ERROR "[range-v3]: Cannot specify both CMAKE_CXX_STANDARD and RANGES_CXX_STD, or they must match. `RANGES_CXX_STD = ${RANGES_CXX_STD}, `CMAKE_CXX_STANDARD` = ${CMAKE_CXX_STANDARD}")
+    endif()
   endif()
-elseif("x${RANGES_CXX_STD}" STREQUAL "xdefault")
-  set(RANGES_CXX_STD 17)
 endif()
 
 # All compilation flags
