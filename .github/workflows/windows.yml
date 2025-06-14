@@ -59,27 +59,25 @@ jobs:
     - name: Configure
       shell: cmake -P {0}
       run: |
-        set(ENV{CC} ${{ matrix.config.cc }})
-        set(ENV{CXX} ${{ matrix.config.cxx }})
+        # set(ENV{CC} ${{ matrix.config.cc }})
+        # set(ENV{CXX} ${{ matrix.config.cxx }})
 
-        if (NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
-          execute_process(
-            COMMAND "${{ matrix.config.environment_script }}" && set
-            OUTPUT_FILE environment_script_output.txt
-          )
-          set(cxx_flags "/nologo /permissive- /EHsc")
-          file(STRINGS environment_script_output.txt output_lines)
-          foreach(line IN LISTS output_lines)
-            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
-              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
-            endif()
-          endforeach()
-        endif()
-
-        # set(ENV{PATH} "$ENV{GITHUB_WORKSPACE};$ENV{PATH}")
+        # if (NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+        #   execute_process(
+        #     COMMAND "${{ matrix.config.environment_script }}" && set
+        #     OUTPUT_FILE environment_script_output.txt
+        #   )
+        #   set(cxx_flags "/nologo /permissive- /EHsc")
+        #   file(STRINGS environment_script_output.txt output_lines)
+        #   foreach(line IN LISTS output_lines)
+        #     if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+        #       set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+        #     endif()
+        #   endforeach()
+        # endif()
 
         if ("x${{ matrix.config.cxx_asan }}" STREQUAL "xtrue")
-          set(cxx_flags "${cxx_flags} -fsanitize=address")
+          set(cxx_flags "${cxx_flags} /fsanitize=address")
           set(link_flags "${link_flags} /INFERASANLIBS /INCREMENTAL:NO")
         endif()
 
@@ -105,26 +103,24 @@ jobs:
             -D RANGES_PREFER_REAL_CONCEPTS:BOOL=${cxx_concepts}
           RESULT_VARIABLE result
         )
+
         if (NOT result EQUAL 0)
           message(FATAL_ERROR "Bad exit status")
         endif()
 
     - name: Build
       shell: cmake -P {0}
-      continue-on-error: ${{ matrix.config.experimental || false }}
       run: |
         set(ENV{NINJA_STATUS} "[%f/%t %o/sec] ")
 
-        if (NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
-          file(STRINGS environment_script_output.txt output_lines)
-          foreach(line IN LISTS output_lines)
-            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
-              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
-            endif()
-          endforeach()
-        endif()
-
-        # set(ENV{PATH} "$ENV{GITHUB_WORKSPACE};$ENV{PATH}")
+        # if (NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+        #   file(STRINGS environment_script_output.txt output_lines)
+        #   foreach(line IN LISTS output_lines)
+        #     if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+        #       set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+        #     endif()
+        #   endforeach()
+        # endif()
 
         include(ProcessorCount)
         ProcessorCount(proc_count)
@@ -140,28 +136,20 @@ jobs:
 
     - name: Run tests
       shell: cmake -P {0}
-      continue-on-error: ${{ matrix.config.experimental || false }}
       run: |
         include(ProcessorCount)
         ProcessorCount(N)
 
-        set(ENV{CTEST_OUTPUT_ON_FAILURE} "ON")
-
-        if (NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
-          file(STRINGS environment_script_output.txt output_lines)
-          foreach(line IN LISTS output_lines)
-            if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
-              set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
-            endif()
-          endforeach()
-        endif()
+        # if (NOT "x${{ matrix.config.environment_script }}" STREQUAL "x")
+        #   file(STRINGS environment_script_output.txt output_lines)
+        #   foreach(line IN LISTS output_lines)
+        #     if (line MATCHES "^([a-zA-Z0-9_-]+)=(.*)$")
+        #       set(ENV{${CMAKE_MATCH_1}} "${CMAKE_MATCH_2}")
+        #     endif()
+        #   endforeach()
+        # endif()
 
         execute_process(
-          COMMAND ctest --verbose -j ${N}
+          COMMAND ctest --output-on-failure --verbose -j ${N}
           WORKING_DIRECTORY build
-          RESULT_VARIABLE result
         )
-
-        if (NOT result EQUAL 0)
-          message(FATAL_ERROR "Running tests failed!")
-        endif()
