@@ -31,7 +31,7 @@
 
 RANGES_DIAGNOSTIC_IGNORE_DEPRECATED_DECLARATIONS
 
-int comparison_count = 0;
+static int comparison_count = 0;
 
 template<typename T>
 bool counting_equals( T const &a, T const &b )
