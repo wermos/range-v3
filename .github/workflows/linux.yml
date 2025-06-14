@@ -47,7 +47,7 @@ jobs:
 
           # GCC-13
         - {
-            name: "Linux GCC 13 Debug (C++20, Concepts)", artifact: "Linux.tar.xz",
+            name: "Linux GCC 13 Debug (C++17)", artifact: "Linux.tar.xz",
             os: ubuntu-24.04,
             build_type: Debug,
             cc: "gcc-13", cxx: "g++-13",
@@ -55,7 +55,7 @@ jobs:
             cxx_coneepts: false,
           }
         - {
-            name: "Linux GCC 13 Release (C++20, Concepts)", artifact: "Linux.tar.xz",
+            name: "Linux GCC 13 Release (C++17)", artifact: "Linux.tar.xz",
             os: ubuntu-24.04,
             build_type: RelWithDebInfo,
             cc: "gcc-13", cxx: "g++-13",
@@ -79,7 +79,7 @@ jobs:
 
         # GCC-14
         - {
-            name: "Linux GCC 14 Debug (C++20, Concepts)", artifact: "Linux.tar.xz",
+            name: "Linux GCC 14 Debug (C++17)", artifact: "Linux.tar.xz",
             os: ubuntu-24.04,
             build_type: Debug,
             cc: "gcc-14", cxx: "g++-14",
@@ -87,7 +87,7 @@ jobs:
             cxx_coneepts: false,
           }
         - {
-            name: "Linux GCC 14 Release (C++20, Concepts)", artifact: "Linux.tar.xz",
+            name: "Linux GCC 14 Release (C++17)", artifact: "Linux.tar.xz",
             os: ubuntu-24.04,
             build_type: RelWithDebInfo,
             cc: "gcc-14", cxx: "g++-14",
